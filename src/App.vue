@@ -8,7 +8,7 @@ import { useTimer } from '@/composables/timer.js'
 
 import { shuffle } from '@/modules/utils.js'
 
-const { timer, startTimer, initTimer } = useTimer()
+const { timer, startTimer, stopTimer, initTimer } = useTimer()
 
 const levels = [
   {
@@ -77,7 +77,10 @@ watch(selectedLevel, currentValue => {
 }, { immediate: true })
 
 watch(isGameOver, currentValue => {
-  if (currentValue) showModal.value = true
+  if (currentValue) {
+    stopTimer()
+    showModal.value = true
+  }
 })
 
 watch(
@@ -152,6 +155,8 @@ const startGame = () => {
 
 const restartGame = () => {
   cards.value = shuffle(cards.value)
+  moveCountAllowed.value = selectedLevel.value.move
+  startTimer()
 
   cards.value = cards.value.map((card, index) => {
     return {
@@ -186,7 +191,15 @@ initTimer()
     </div>
     <GameBoard :cards="cards" @select-card="selectCard" />
 
-    <GameResult v-model:show="showModal" />
+    <GameResult v-model:show="showModal" :status="status" />
+
+    <button
+      v-if="isGameOver"
+      class="restart-game-btn"
+      @click="restartGame"
+    >
+      شروع دوباره
+    </button>
   </div>
 </template>
 
@@ -206,15 +219,15 @@ initTimer()
   justify-content: center;
 }
 
-.game-result {
-  text-align: center;
-  .title {
-    font-size: 16px;
-    margin-bottom: 12px;
-  }
-  button {
-    background-color: #29ce4e;
-    border: 0;
+.restart-game-btn {
+  background-color: #29ce4e;
+  border: 0;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  cursor: pointer;
+  font-weight: 900;
+  color: white;
     font-family: inherit;
   }
 }
