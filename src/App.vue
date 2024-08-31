@@ -9,8 +9,8 @@ import GameResult from '@/components/GameResult.vue'
 import IconMusic from '@/components/icons/IconMusic.vue'
 import IconNoMusic from '@/components/icons/IconNoMusic.vue'
 
-import bgAudio from '@/assets/audio/game-bg.mp3?url'
-import successAudio from '@/assets/audio/success-sound.mp3'
+import bgAudio from '/audio/game-bg.mp3?url'
+import successAudio from '/audio/success-sound.mp3'
 
 const { timer, startTimer, stopTimer, initTimer } = useTimer()
 
