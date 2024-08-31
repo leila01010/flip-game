@@ -16,22 +16,25 @@ const { timer, startTimer, stopTimer, initTimer } = useTimer()
 
 const levels = [
   {
-    title: 'easy',
+    title: 'آسان',
+    key: 'easy',
     count: 12,
     time: 3000,
-    move: 20
+    move: 30
   },
   {
-    title: 'normal',
+    title: 'معمولی',
+    key: 'normal',
     count: 16,
     time: 2000,
-    move: 20
+    move: 40
   },
   {
-    title: 'hard',
+    title: 'سخت',
+    key: 'hard',
     count: 20,
     time: 2000,
-    move: 20
+    move: 30
   }
 ]
 const level = ref('normal')
@@ -46,7 +49,7 @@ const bgSound = new Audio(bgAudio)
 const successSound = new Audio(successAudio)
 
 const selectedLevel = computed(() => {
-  return levels.find(item => item.title === level.value)
+  return levels.find(item => item.key === level.value)
 })
 
 const matchesFound = computed(() => {
@@ -214,10 +217,10 @@ initTimer()
       <div class="levels">
         <div
           v-for="item in levels"
-          :key="item.title"
+          :key="item.key"
           class="level-item"
-          :class="{ 'is-active' : level === item.title }"
-          @click="level = item.title"
+          :class="{ 'is-active' : level === item.key }"
+          @click="level = item.key"
         >
           <span v-text="item.title" />
         </div>
