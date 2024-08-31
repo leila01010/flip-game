@@ -21,7 +21,7 @@ const select = () => {
     <div class="card-view is-front">
       <img :src="`/images/product-${value + 1}.jpg`" :alt="`product-${value}`" />
     </div>
-    <div class="card-view is-back">? {{ value }}</div>
+    <div class="card-view is-back">?</div>
   </div>
 </template>
 
@@ -46,7 +46,7 @@ const select = () => {
   justify-content: center;
   backface-visibility: hidden;
   cursor: pointer;
-  box-shadow: 4px 4px 0 #C9C0A6;
+  box-shadow: 4px 4px 0 #F7DBF0;
   img {
     width: 100%;
     height: 100%;
@@ -60,8 +60,8 @@ const select = () => {
 }
 
 .card-view.is-back {
-  background-color: #e8e1c9;
-  color: rgba(201, 192, 166, 0.8);
+  background-color: #BEAEE2;
+  color: #F7DBF0;
   font-weight: bold;
   font-size: 25px;
 }

@@ -1,12 +1,16 @@
 <script setup>
+import { computed, ref, watch } from 'vue'
+import { useTimer } from '@/composables/timer.js'
+import { shuffle } from '@/modules/utils.js'
+
 import GameBoard from '@/components/GameBoard.vue'
 import GameResult from '@/components/GameResult.vue'
 
-import { computed, ref, watch } from 'vue'
+import IconMusic from '@/components/icons/IconMusic.vue'
+import IconNoMusic from '@/components/icons/IconNoMusic.vue'
 
-import { useTimer } from '@/composables/timer.js'
-
-import { shuffle } from '@/modules/utils.js'
+import bgAudio from '@/assets/audio/game-bg.mp3?url'
+import successAudio from '@/assets/audio/success-sound.mp3'
 
 const { timer, startTimer, stopTimer, initTimer } = useTimer()
 
@@ -25,26 +29,41 @@ const levels = [
   },
   {
     title: 'hard',
-    count: 32,
+    count: 20,
     time: 2000,
     move: 20
   }
 ]
-
 const level = ref('normal')
-
 const cards = ref([])
-
 const selections = ref([])
-
 const started = ref(false)
-
+const isPlay = ref(true)
 const showModal = ref(false)
-
 const moveCountAllowed = ref(0)
+
+const bgSound = new Audio(bgAudio)
+const successSound = new Audio(successAudio)
 
 const selectedLevel = computed(() => {
   return levels.find(item => item.title === level.value)
+})
+
+const matchesFound = computed(() => {
+  const matchedCards = cards.value.filter(card => card.matched === true).length
+
+  return matchedCards / 2
+})
+
+const status = computed(() => {
+  if (matchesFound.value && matchesFound.value === cards.value.length / 2) return 'win'
+  else if (moveCountAllowed.value === 0 && matchesFound.value !== cards.value.length / 2
+    || timer.status === 'end') return 'loose'
+  else return ''
+})
+
+const isGameOver = computed(() => {
+  return status.value === 'win' || status.value === 'loose'
 })
 
 const getGridDimension = computed(() => {
@@ -55,29 +74,17 @@ const getGridDimension = computed(() => {
   }
 })
 
-const matchesFound = computed(() => {
-  const matchedCards = cards.value.filter(card => card.matched === true).length
-
-  return matchedCards / 2
-})
-
-const status = computed(() => {
-  if (moveCountAllowed.value === 0 && matchesFound.value !== cards.value.length / 2
-    || timer.status === 'end') return 'loose'
-  else if (matchesFound.value === cards.value.length / 2) return 'win'
-  else return ''
-})
-
-const isGameOver = computed(() => {
-  return !!status.value
-})
-
 watch(selectedLevel, currentValue => {
-  if (currentValue) moveCountAllowed.value = currentValue.move
+  if (currentValue) {
+    moveCountAllowed.value = currentValue.move
+    createBoard()
+    // restartGame()
+  }
 }, { immediate: true })
 
 watch(isGameOver, currentValue => {
   if (currentValue) {
+    pauseSound()
     stopTimer()
     showModal.value = true
   }
@@ -93,6 +100,7 @@ watch(
       if (selectionOne.value === selectionTwo.value) {
         cards.value[selectionOne.index].matched = true
         cards.value[selectionTwo.index].matched = true
+        successSound.play()
       } else {
         setTimeout(() => {
           cards.value[selectionOne.index].visible = false
@@ -106,8 +114,9 @@ watch(
   { deep: true }
 )
 
-const createBoard = () => {
+function createBoard() {
   const pairsCount = selectedLevel.value.count / 2
+  cards.value = []
 
   for(let i = 0; i < pairsCount; i++) {
     cards.value.push({
@@ -129,7 +138,7 @@ const createBoard = () => {
   shuffleCards()
 }
 
-const selectCard = (card) => {
+function selectCard(card) {
   if (isGameOver.value) return
 
   cards.value[card.index].visible = true
@@ -147,13 +156,15 @@ const selectCard = (card) => {
   }
 }
 
-const startGame = () => {
-  if (!started.value) startTimer()
-
+function startGame() {
+  if (!started.value) {
+    startTimer()
+    playSound()
+  }
   started.value = true
 }
 
-const restartGame = () => {
+function restartGame() {
   cards.value = shuffle(cards.value)
   moveCountAllowed.value = selectedLevel.value.move
   startTimer()
@@ -168,7 +179,7 @@ const restartGame = () => {
   })
 }
 
-const shuffleCards = () => {
+function shuffleCards() {
   cards.value = shuffle(cards.value)
 
   cards.value = cards.value.map((card, index) => {
@@ -179,16 +190,48 @@ const shuffleCards = () => {
   })
 }
 
-createBoard()
+function playSound() {
+  bgSound.play()
+  isPlay.value = true
+}
+
+function pauseSound() {
+  bgSound.pause()
+  isPlay.value = false
+}
+
+function toggleSound() {
+  if (isPlay.value) pauseSound()
+  else playSound()
+}
+
 initTimer()
 </script>
 
 <template>
   <div class="flip-game">
+    <div class="settings">
+      <div class="levels">
+        <div
+          v-for="item in levels"
+          :key="item.title"
+          class="level-item"
+          :class="{ 'is-active' : level === item.title }"
+          @click="level = item.title"
+        >
+          <span v-text="item.title" />
+        </div>
+      </div>
+      <button class="sound-control-btn" @click="toggleSound">
+        <IconNoMusic v-if="isPlay" />
+        <IconMusic v-else />
+      </button>
+    </div>
     <div class="header">
       <p>{{ timer.text }}</p>
       <div>تعداد حرکت: {{ moveCountAllowed }}</div>
     </div>
+
     <GameBoard :cards="cards" @select-card="selectCard" />
 
     <GameResult v-model:show="showModal" :status="status" />
@@ -209,6 +252,8 @@ initTimer()
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+  font-size: 17px;
+  font-weight: bold;
 }
 .game-board {
   display: grid;
@@ -220,15 +265,58 @@ initTimer()
 }
 
 .restart-game-btn {
-  background-color: #29ce4e;
+  background-color: #CDF0EA;
   border: 0;
   padding: 10px 20px;
   border-radius: 8px;
   margin-top: 20px;
   cursor: pointer;
   font-weight: 900;
-  color: white;
-    font-family: inherit;
+}
+
+.settings {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  .sound-control-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 100%;
+    border: 0;
+    padding: 10px;
+    background-color: #CDF0EA;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+    svg {
+      fill: #816caf;
+    }
+  }
+  .levels {
+    display: flex;
+    .level-item {
+      padding: 10px 15px;
+      background-color: #CDF0EA;
+      margin: 0 2px;
+      border-radius: 10px;
+      cursor: pointer;
+      &.is-active {
+        background-color: #816caf;
+        color: white;
+      }
+    }
+  }
+}
+
+@media (max-width: 425px) {
+  .header {
+    margin-top: 50px;
+  }
+  .game-board {
+    grid-template-columns: repeat(v-bind('getGridDimension.rows'), 60px);
+    grid-template-rows: repeat(v-bind('getGridDimension.cols'), 60px);
   }
 }
 </style>

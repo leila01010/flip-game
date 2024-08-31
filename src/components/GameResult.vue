@@ -17,3 +17,21 @@ const visible = defineModel('show', { default: false })
     </div>
   </Modal>
 </template>
+
+<style scoped>
+.game-result {
+  text-align: center;
+  padding: 15px 0;
+  .title {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+  button {
+    background-color: #CDF0EA;
+    border: 0;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+}
+</style>

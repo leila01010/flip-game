@@ -1,4 +1,7 @@
 <script setup>
+defineProps({
+  width: { type: String, default: '300px' }
+})
 const visible = defineModel('show', { default: false })
 </script>
 
@@ -21,7 +24,7 @@ const visible = defineModel('show', { default: false })
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -31,9 +34,9 @@ const visible = defineModel('show', { default: false })
   background-color: #fff;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  width: 80%;
-  max-width: 400px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: v-bind(width);
 }
 
 .modal-enter-active,

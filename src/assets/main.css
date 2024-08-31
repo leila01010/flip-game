@@ -12,10 +12,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #F9F9F9;
+  position: relative;
+  * {
+    box-sizing: border-box;
+  }
 }
 
 p {
   margin: 0;
+}
+button {
+  font-family: inherit;
 }
 
 @media (hover: hover) {}
